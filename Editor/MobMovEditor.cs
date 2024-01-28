@@ -116,10 +116,9 @@ public class MobMovEditor : Editor
             EditorGUILayout.PropertyField(label: new GUIContent("Speed Build Up"), property: velPower);
             EditorGUILayout.PropertyField(label: new GUIContent("Max Slope Angle"), property: maxSlopeAngle);
 
-            if (((MobMovement)target).gameObject.CompareTag("Enemy"))
-            {
-                EditorGUILayout.PropertyField(label: new GUIContent("Rotate with Movement"), property: rotWithMove);
-            }
+
+            EditorGUILayout.PropertyField(label: new GUIContent("Rotate with Movement"), property: rotWithMove);
+
 
         }
         EditorGUILayout.EndFoldoutHeaderGroup();

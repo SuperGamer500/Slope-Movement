@@ -1,5 +1,4 @@
 using System;
-using Unity.VisualScripting;
 using UnityEngine;
 
 
@@ -32,7 +31,7 @@ public class MobMovement : MonoBehaviour
 
 
 
-    [SerializeField] LayerMask groundLayers;
+    [SerializeField] LayerMask groundLayers = 1 << 0;
     [SerializeField] float jumpPower = 10;
     [SerializeField] float gravity = 15.5f;
     [SerializeField] float terminalVelocity = 100f;
