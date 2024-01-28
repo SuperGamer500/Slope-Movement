@@ -12,7 +12,7 @@ Important Information (Read this part of this file)
 Copyright Information
 Dont worry about copyright for these assets. If you want to credit me you can copy/paste the text below.
 
-"Slope-Movment" by SuperGamer500 https://www.youtube.com/channel/UCdIrqcHNYux_0OSNiFJHNZQ
+"Slope-Movement" by SuperGamer500 https://www.youtube.com/channel/UCdIrqcHNYux_0OSNiFJHNZQ
 
 
     
