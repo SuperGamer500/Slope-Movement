@@ -187,12 +187,12 @@ public class MobMovement : MonoBehaviour
 
         if (leftMCheck == false || (leftTCheck == false && moveType == moveStyle.normal))
         {
-
+            Debug.Log("Cancelling");
             speedX = Mathf.Max(0, speedX);
         }
         else if (rightMCheck == false || (rightTCheck == false && moveType == moveStyle.normal))
         {
-
+            Debug.Log("Cancelling");
             speedX = Mathf.Min(0, speedX);
         }
 
