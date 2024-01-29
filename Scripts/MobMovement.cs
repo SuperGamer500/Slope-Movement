@@ -1,4 +1,5 @@
 using System;
+using Unity.VisualScripting;
 using UnityEngine;
 
 
@@ -18,18 +19,14 @@ public class MobMovement : MonoBehaviour
     [SerializeField] groundState currentGroundState;
     [SerializeField] GameObject groundCheckObj;
     [SerializeField] GameObject slopeCheckObj;
+    [SerializeField] bool dynamicSlopeObj = true;
 
 
     private float slopeAngle;
     [SerializeField] float maxSlopeAngle = 60;
 
-
     Collider2D currentCol;
-
-
     (Vector2 rightM, Vector2 leftM, Vector2 middleM, Vector2 rightT, Vector2 leftT, Vector2 middleT, Vector2 rightB, Vector2 leftB, Vector2 middleB) sidesTuple;
-
-
 
     [SerializeField] LayerMask groundLayers = 1 << 0;
     [SerializeField] float jumpPower = 10;
@@ -56,13 +53,12 @@ public class MobMovement : MonoBehaviour
 
     Vector2 calculatedVel = new Vector2(0, 0);
 
-
-
     public Vector2 requestedDirection;
     float lockMovement = 0;
     [SerializeField] moveStyle moveType;
 
     private float slideGracePeriod = 0;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -81,9 +77,15 @@ public class MobMovement : MonoBehaviour
         plrRigid = GetComponent<Rigidbody2D>();
     }
 
+    void changeSlopeObj()
+    {
+        float speedPlus = (Mathf.Abs(speedX) + Mathf.Abs(speedY)) / (10);
+        float yCalc = jumpVector.y > 0.1 ? 0.01f : Mathf.Clamp(0.5f * speedPlus, 0.5f, 2);
+        slopeCheckObj.transform.localScale = new Vector3(0.9f, yCalc, 1);
+        slopeCheckObj.transform.position = sidesTuple.middleB - new Vector2(0, (slopeCheckObj.transform.lossyScale.y / 2));
+    }
     void moveFunction()
     {
-
         Vector2 input = Vector2.zero;
 
         //if lockmovement timer is not on
@@ -141,15 +143,8 @@ public class MobMovement : MonoBehaviour
             float speedToUse = 0;
             incrementCalculate(ref speedToUse, ref speedX, input.x);
 
-            // if the obj is falling off of the slope
-            // if (onslope != lastSlopeBool && lastSlopeBool == true && onslope == null && jumpVector.y <= 0 && moveVector.y < -0.1f)
-            // {
-            //     //convert any y speed in the movevector variable to y velocity in the jump vector value
-            //     speedX = moveVector.x;
-            //     jumpVector = new Vector2(jumpVector.x, moveVector.y);
-            // }
-
-            if ((Mathf.Abs(slopeAngle) < 0.1f) && onslope == null && jumpVector.y <= 0 && moveVector.y < -0.1f)
+            // if the obj is falling off of the slope  
+            if ((Mathf.Abs(slopeAngle) < 0.1f) && onslope == null && jumpVector.y <= 0 && moveVector.y < -0.1f && SlopeStaticClass.slopeFollow(slopeCheckObj, groundLayers) == false)
             {
                 //convert any y speed in the movevector variable to y velocity in the jump vector value
                 speedX = moveVector.x;
@@ -168,9 +163,6 @@ public class MobMovement : MonoBehaviour
 
         //checks corners to prevent deceleration on walls
         #region CornerCheck
-
-
-
         bool leftMCheck = SlopeStaticClass.canGo(gameObject, sidesTuple.leftM, groundLayers, new Vector2(0.1f, 0.1f));
 
         bool leftTCheck = SlopeStaticClass.canGo(gameObject, sidesTuple.leftT, groundLayers, new Vector2(0.1f, 0.1f));
@@ -183,16 +175,12 @@ public class MobMovement : MonoBehaviour
 
         bool middleBottomCheck = SlopeStaticClass.canGo(gameObject, sidesTuple.middleB, groundLayers, new Vector2(0.1f, 0.1f));
 
-
-
         if (leftMCheck == false || (leftTCheck == false && moveType == moveStyle.normal))
         {
-            Debug.Log("Cancelling");
             speedX = Mathf.Max(0, speedX);
         }
         else if (rightMCheck == false || (rightTCheck == false && moveType == moveStyle.normal))
         {
-            Debug.Log("Cancelling");
             speedX = Mathf.Min(0, speedX);
         }
 
@@ -202,7 +190,6 @@ public class MobMovement : MonoBehaviour
         }
         else if (middleBottomCheck == false)
         {
-
             speedY = Mathf.Max(0, speedY);
         }
         #endregion
@@ -210,7 +197,6 @@ public class MobMovement : MonoBehaviour
         //if movetype is normal
         if (moveType == moveStyle.normal)
         {
-            //Debug.Log(slopeAngle);
             //movector is equal to the x speed times the ground normal
             moveVector = speedX * groundNormal;
         }
@@ -247,7 +233,6 @@ public class MobMovement : MonoBehaviour
         //if input is moving
         if (inputValue != 0)
         {
-
             accelOrDecel = "accel";
         }
         // if input is zero
@@ -301,7 +286,6 @@ public class MobMovement : MonoBehaviour
                 currentSpeed = 0;
             }
         }
-
     }
     void gravFunction()
     {
@@ -320,7 +304,6 @@ public class MobMovement : MonoBehaviour
             if (jumpVector.y > -terminalVelocity)
             {
                 //reduce speed by fall values
-
                 if (currentGroundState == groundState.fastFall)
                 {
                     yValue = Mathf.Max(-terminalVelocity, jumpVector.y - (gravity * Time.deltaTime * fastFallMultiplier));
@@ -382,40 +365,43 @@ public class MobMovement : MonoBehaviour
         }
         //removes jumpvector y if the object collides with wall
         #region CornerCheck
-
-
-
         bool middleTopCheck = SlopeStaticClass.canGo(gameObject, sidesTuple.middleT, groundLayers, new Vector2(0.1f, 0.1f));
 
         bool leftTopCheck = SlopeStaticClass.canGo(gameObject, sidesTuple.leftT, groundLayers, new Vector2(0.1f, 0.1f));
 
         bool rightTopCheck = SlopeStaticClass.canGo(gameObject, sidesTuple.rightT, groundLayers, new Vector2(0.1f, 0.1f));
 
-
-
         if (middleTopCheck == false && jumpVector.y > 0.1f)
         {
             jumpVector.y = Mathf.Clamp(jumpVector.y, int.MinValue, 0);
         }
         #endregion
-
     }
     public void jumpRequest()
     {
-
         //if object is jumping in the direction of the slope
-        if (MathF.Sign(slopeAngle) == Mathf.Sign(moveVector.x) && slopeAngle == 0)
+        if (MathF.Sign(slopeAngle) == Mathf.Sign(moveVector.x) && slopeAngle != 0)
         {
             slideGracePeriod = 0.05f;
             //give extra jump height
-            jumpVector = new Vector2(0, 1) * jumpPower * 1.25f;
+            if (Mathf.Abs(slopeAngle) > maxSlopeAngle)
+            {
+                speedX = maxSpeed * 0.25f * -Mathf.Sign(slopeAngle);
+                jumpVector = (perpendicularNormal * 0.5f + new Vector2(0, 1) * 0.5f) * jumpPower;
+            }
+            else
+            {
+                jumpVector = new Vector2(0, 1) * jumpPower + new Vector2(0, moveVector.y / 2);
+            }
             currentGroundState = groundState.jumping;
         }
         else
         {
             slideGracePeriod = 0.05f;
             //jump based on the slope 
+
             jumpVector = (perpendicularNormal * 0.5f + new Vector2(0, 1) * 0.5f) * jumpPower;
+
             currentGroundState = groundState.jumping;
 
             //if sliding
@@ -431,7 +417,6 @@ public class MobMovement : MonoBehaviour
                 lockMovement = 0.15f;
             }
         }
-
         currentGroundState = groundState.jumping;
     }
     public bool onGround(string purpose = "state")
@@ -492,9 +477,7 @@ public class MobMovement : MonoBehaviour
                 }
 
             }
-            return numberOfHits > 0;
-
-
+            return numberOfHits > 0 && onGround();
         }
         else
         {
@@ -521,6 +504,10 @@ public class MobMovement : MonoBehaviour
 
         #endregion
 
+        if (dynamicSlopeObj)
+        {
+            changeSlopeObj();
+        }
         //reduce lock movement timer
         lockMovement = Mathf.Max(lockMovement - Time.deltaTime, 0);
 
@@ -547,6 +534,11 @@ public class MobMovement : MonoBehaviour
                     currentJBTime = jumpBuffer;
                 }
                 currentJBTime = Mathf.Clamp(currentJBTime - Time.deltaTime, 0, jumpBuffer);
+
+                if (Input.GetKeyDown(KeyCode.C))
+                {
+                    Time.timeScale = Time.timeScale == 0.1f ? 1 : 0.1f;
+                }
             }
         }
         #endregion

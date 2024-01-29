@@ -8,32 +8,26 @@ static public class SlopeStaticClass
     public static bool canGo(GameObject obj, Vector3 nextPosition, LayerMask groundLayers, Vector2 scale)
     {
 
-        int numberOfHits = 0;
-        foreach (Collider2D col in Physics2D.OverlapBoxAll(nextPosition, scale, obj.transform.eulerAngles.z, groundLayers))
-        {
-            if (col.gameObject != obj)
-            {
-                numberOfHits++;
-            }
+        // int numberOfHits = 0;
 
-        }
-        return numberOfHits == 0;
+        // foreach (Collider2D col in Physics2D.OverlapBoxAll(nextPosition, scale, obj.transform.eulerAngles.z, groundLayers))
+        // {
+        //     if (col.gameObject != obj)
+        //     {
+        //         numberOfHits++;
+        //     }
+
+        // }
+        // return numberOfHits == 0;
+
+        return !Physics2D.OverlapBox(nextPosition, scale, obj.transform.eulerAngles.z, groundLayers);
     }
 
     //checks to see if slope obj is collideing with some type of ground
-    static bool slopeFollow(GameObject slopCheckObj, LayerMask groundLayers)
+    public static bool slopeFollow(GameObject slopCheckObj, LayerMask groundLayers)
     {
-        int numberOfHits = 0;
-        foreach (Collider2D col in Physics2D.OverlapBoxAll(slopCheckObj.transform.position, slopCheckObj.transform.lossyScale, slopCheckObj.transform.eulerAngles.z, groundLayers))
-        {
-            if (col.ClosestPoint(slopCheckObj.transform.position).y < slopCheckObj.transform.position.y)
-            {
-                numberOfHits++;
-            }
 
-        }
-        return numberOfHits >= 0;
-        return Physics2D.OverlapBoxAll(slopCheckObj.transform.position, slopCheckObj.transform.lossyScale, slopCheckObj.transform.eulerAngles.z, groundLayers).Length > 0;
+        return Physics2D.OverlapBox(slopCheckObj.transform.position, slopCheckObj.transform.lossyScale, slopCheckObj.transform.eulerAngles.z, groundLayers);
 
     }
 
@@ -65,9 +59,8 @@ static public class SlopeStaticClass
         (RaycastHit2D left, RaycastHit2D right, RaycastHit2D middle) castTuple = (new RaycastHit2D(), new RaycastHit2D(), new RaycastHit2D());
 
         //float raySize = 10;
-        float raySize = Mathf.Abs(obj.transform.position.y - (slopeCheckObj.transform.position.y + (-colToUse.bounds.size.y / 2)));
+        float raySize = Mathf.Abs(obj.transform.position.y - (slopeCheckObj.transform.position.y + (-slopeCheckObj.transform.lossyScale.y / 2)));
 
-        //Debug.Log(raySize);
         castTuple.left = Physics2D.Raycast(rayTuple.left.origin, rayTuple.left.direction, raySize, groundLayers);
         castTuple.right = Physics2D.Raycast(rayTuple.right.origin, rayTuple.right.direction, raySize, groundLayers);
         castTuple.middle = Physics2D.Raycast(rayTuple.middle.origin, rayTuple.middle.direction, raySize, groundLayers);
@@ -196,6 +189,7 @@ static public class SlopeStaticClass
             if (cloesestPoint == yPointsTuple.right && movingTuple.right == true)
             {
                 //set cast to the right
+
                 castToUse = castTuple.right;
 
             }
@@ -203,6 +197,7 @@ static public class SlopeStaticClass
             else if (cloesestPoint == yPointsTuple.left && movingTuple.left == true)
             {
                 //set cast to the left
+
                 castToUse = castTuple.left;
 
             }
@@ -210,6 +205,7 @@ static public class SlopeStaticClass
             else
             {
                 //set cast to the middle
+
                 castToUse = castTuple.middle;
 
             }
@@ -233,7 +229,7 @@ static public class SlopeStaticClass
                 {
 
                     //use the left instead of right
-                    //Debug.Log("left1");
+
                     castToUse = castTuple.left;
 
 
@@ -245,14 +241,14 @@ static public class SlopeStaticClass
                     {
 
                         //use right cast
-                        //Debug.Log("right1");
+
                         castToUse = castTuple.right;
 
                     }
                     else
                     {
                         //use middle cast instead
-                        //Debug.Log("mid1");
+
                         castToUse = castTuple.middle;
 
 
@@ -273,7 +269,7 @@ static public class SlopeStaticClass
                 {
 
                     //cast right instead of left
-                    //Debug.Log("right2");
+
                     castToUse = castTuple.right;
 
 
@@ -284,14 +280,14 @@ static public class SlopeStaticClass
                     if (goTuple.left)
                     {
                         //cast left
-                        // Debug.Log("left2");
+
                         castToUse = castTuple.left;
 
                     }
                     else
                     {
                         //cast middle instead
-                        //Debug.Log("mid2");
+
                         castToUse = castTuple.middle;
 
                     }
@@ -303,11 +299,12 @@ static public class SlopeStaticClass
             else
             {
                 //cast to middle
-                //Debug.Log("mid3");
+
                 castToUse = castTuple.middle;
             }
 
         }
+
 
 
         #endregion
@@ -327,19 +324,40 @@ static public class SlopeStaticClass
             else
             {
                 //if the obj is not near the ground
-                if (Mathf.Abs(obj.transform.position.y - castToUse.point.y) > colToUse.bounds.size.y / 1.8f && jumpY < 0.1f)
+
+
+                if (jumpY < 0.1f)
                 {
+
                     // attempt to force the obj closer to the ground if the obj is not jumping
-                    Vector3 nextPos = obj.transform.position - new Vector3(0, obj.transform.position.y - castToUse.point.y, 0).normalized * Time.deltaTime * (2.5f * (currentVelocity.magnitude / 10));
+
+                    Vector3 nextPos = obj.transform.position - new Vector3(0, obj.transform.position.y - castToUse.point.y, 0).normalized * Time.deltaTime * (2.5f * (currentVelocity.magnitude / 5));
 
                     if (canGo(obj, nextPos, groundLayers, obj.transform.lossyScale * 0.9f))
                     {
                         onSlope = true;
                         obj.transform.position -= new Vector3(0, obj.transform.position.y - castToUse.point.y, 0).normalized * Time.deltaTime * (2.5f * (currentVelocity.magnitude / 10));
                     }
+                    else
+                    {
+                        float speedAmount = 2.5f * (currentVelocity.magnitude / 5);
+                        while (speedAmount > 0)
+                        {
+
+                            nextPos = obj.transform.position - new Vector3(0, obj.transform.position.y - castToUse.point.y, 0).normalized * Time.deltaTime * speedAmount;
+                            if (canGo(obj, nextPos, groundLayers, obj.transform.lossyScale))
+                            {
+                                //Debug.Log("one was found");
+                                onSlope = true;
+                                obj.transform.position -= new Vector3(0, obj.transform.position.y - castToUse.point.y, 0).normalized * Time.deltaTime * speedAmount;
+                                break;
+                            }
+
+                            speedAmount -= 0.1f;
+                        }
+                    }
                 }
             }
-
             //get return values
             returnValue.perpendicular = -Vector2.Perpendicular(castToUse.normal);
             returnValue.normal = castToUse.normal;

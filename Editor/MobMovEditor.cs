@@ -22,6 +22,7 @@ public class MobMovEditor : Editor
 
 
     SerializedProperty slopeCheckObj;
+    SerializedProperty dynamicSlopeObj;
 
     SerializedProperty groundLayers;
     SerializedProperty jumpPower;
@@ -72,6 +73,7 @@ public class MobMovEditor : Editor
         groundCheckObj = serializedObject.FindProperty("groundCheckObj");
 
         slopeCheckObj = serializedObject.FindProperty("slopeCheckObj");
+        dynamicSlopeObj = serializedObject.FindProperty("dynamicSlopeObj");
         maxSlopeAngle = serializedObject.FindProperty("maxSlopeAngle");
 
         groundLayers = serializedObject.FindProperty("groundLayers");
@@ -116,9 +118,10 @@ public class MobMovEditor : Editor
             EditorGUILayout.PropertyField(label: new GUIContent("Speed Build Up"), property: velPower);
             EditorGUILayout.PropertyField(label: new GUIContent("Max Slope Angle"), property: maxSlopeAngle);
 
-
-            EditorGUILayout.PropertyField(label: new GUIContent("Rotate with Movement"), property: rotWithMove);
-
+            if (((MobMovement)target).gameObject.CompareTag("Enemy"))
+            {
+                EditorGUILayout.PropertyField(label: new GUIContent("Rotate with Movement"), property: rotWithMove);
+            }
 
         }
         EditorGUILayout.EndFoldoutHeaderGroup();
@@ -169,6 +172,8 @@ public class MobMovEditor : Editor
 
 
             EditorGUILayout.PropertyField(label: new GUIContent("Slope Check Obj"), property: slopeCheckObj);
+
+            EditorGUILayout.PropertyField(label: new GUIContent("Dynamic Slope Check"), property: dynamicSlopeObj);
         }
 
     }
