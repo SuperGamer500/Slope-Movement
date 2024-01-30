@@ -80,8 +80,8 @@ public class MobMovement : MonoBehaviour
     void changeSlopeObj()
     {
         float speedPlus = (Mathf.Abs(speedX) + Mathf.Abs(speedY)) / (10);
-        float yCalc = jumpVector.y > 0.1 ? 0.01f : Mathf.Clamp(0.5f * speedPlus, 0.5f, 2);
-        slopeCheckObj.transform.localScale = new Vector3(0.9f, yCalc, 1);
+        float yCalc = jumpVector.y > 0.1 ? 0.1f : Mathf.Clamp(0.5f * speedPlus, 0.5f, 2);
+        slopeCheckObj.transform.localScale = jumpVector.y > 0.1 ? new Vector3(1.1f, yCalc, 1) : new Vector3(0.9f, yCalc, 1);
         slopeCheckObj.transform.position = sidesTuple.middleB - new Vector2(0, (slopeCheckObj.transform.lossyScale.y / 2));
     }
     void moveFunction()
@@ -109,7 +109,7 @@ public class MobMovement : MonoBehaviour
                 {
                     //change input to be of the direction of the slope
                     jumpVector.y = 0;
-
+                    Debug.Log("changing");
                     input = new Vector2(-MathF.Sign(groundNormal.x) * Mathf.Sign(slopeAngle), 0);
                 }
 
@@ -147,6 +147,7 @@ public class MobMovement : MonoBehaviour
             if ((Mathf.Abs(slopeAngle) < 0.1f) && onslope == null && jumpVector.y <= 0 && moveVector.y < -0.1f && SlopeStaticClass.slopeFollow(slopeCheckObj, groundLayers) == false)
             {
                 //convert any y speed in the movevector variable to y velocity in the jump vector value
+
                 speedX = moveVector.x;
                 slideGracePeriod = 0.1f;
                 jumpVector = new Vector2(jumpVector.x, moveVector.y);
@@ -534,11 +535,6 @@ public class MobMovement : MonoBehaviour
                     currentJBTime = jumpBuffer;
                 }
                 currentJBTime = Mathf.Clamp(currentJBTime - Time.deltaTime, 0, jumpBuffer);
-
-                if (Input.GetKeyDown(KeyCode.C))
-                {
-                    Time.timeScale = Time.timeScale == 0.1f ? 1 : 0.1f;
-                }
             }
         }
         #endregion
