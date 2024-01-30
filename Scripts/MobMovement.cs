@@ -1,5 +1,4 @@
 using System;
-using Unity.VisualScripting;
 using UnityEngine;
 
 
@@ -109,7 +108,7 @@ public class MobMovement : MonoBehaviour
                 {
                     //change input to be of the direction of the slope
                     jumpVector.y = 0;
-                    Debug.Log("changing");
+
                     input = new Vector2(-MathF.Sign(groundNormal.x) * Mathf.Sign(slopeAngle), 0);
                 }
 
@@ -147,7 +146,6 @@ public class MobMovement : MonoBehaviour
             if ((Mathf.Abs(slopeAngle) < 0.1f) && onslope == null && jumpVector.y <= 0 && moveVector.y < -0.1f && SlopeStaticClass.slopeFollow(slopeCheckObj, groundLayers) == false)
             {
                 //convert any y speed in the movevector variable to y velocity in the jump vector value
-
                 speedX = moveVector.x;
                 slideGracePeriod = 0.1f;
                 jumpVector = new Vector2(jumpVector.x, moveVector.y);
@@ -351,6 +349,7 @@ public class MobMovement : MonoBehaviour
         }
         else
         {
+
             //if on ground and the player is not jumping
             if (onGround("grav") == true && currentGroundState != groundState.jumping && slideGracePeriod <= 0)
             {
@@ -440,39 +439,24 @@ public class MobMovement : MonoBehaviour
         //used for gravity calculations
         else if (purpose == "grav")
         {
-            Ray2D leftRay = new Ray2D(sidesTuple.leftB, Vector2.down);
-
-            Ray2D rightRay = new Ray2D(sidesTuple.rightB, Vector2.down);
-
-            Ray2D middleRay = new Ray2D(sidesTuple.middleB, Vector2.down);
-
-            RaycastHit2D castLeft = Physics2D.Raycast(leftRay.origin, leftRay.direction, 0.1f, groundLayers);
-
-            RaycastHit2D castRight = Physics2D.Raycast(rightRay.origin, rightRay.direction, 0.1f, groundLayers);
-
-
-            RaycastHit2D castMiddle = Physics2D.Raycast(middleRay.origin, middleRay.direction, 0.1f, groundLayers);
-
             int numberOfHits = 0;
-            foreach (Collider2D col in Physics2D.OverlapBoxAll(sidesTuple.leftB, Vector2.zero, groundCheckObj.transform.eulerAngles.z, groundLayers))
+            foreach (Collider2D col in Physics2D.OverlapBoxAll(sidesTuple.leftB, new Vector2(0, 0.1f), groundCheckObj.transform.eulerAngles.z, groundLayers))
             {
-                if (col.gameObject != currentCol.gameObject)
+                if (col.gameObject != currentCol.gameObject && col.isTrigger == false)
                 {
                     numberOfHits++;
                 }
-
             }
-            foreach (Collider2D col in Physics2D.OverlapBoxAll(sidesTuple.rightB, Vector2.zero, groundCheckObj.transform.eulerAngles.z, groundLayers))
+            foreach (Collider2D col in Physics2D.OverlapBoxAll(sidesTuple.rightB, new Vector2(0, 0.01f), groundCheckObj.transform.eulerAngles.z, groundLayers))
             {
-                if (col.gameObject != currentCol.gameObject)
+                if (col.gameObject != currentCol.gameObject && col.isTrigger == false)
                 {
                     numberOfHits++;
                 }
-
             }
-            foreach (Collider2D col in Physics2D.OverlapBoxAll(sidesTuple.middleB, Vector2.zero, groundCheckObj.transform.eulerAngles.z, groundLayers))
+            foreach (Collider2D col in Physics2D.OverlapBoxAll(sidesTuple.middleB, new Vector2(0, 0.01f), groundCheckObj.transform.eulerAngles.z, groundLayers))
             {
-                if (col.gameObject != currentCol.gameObject)
+                if (col.gameObject != currentCol.gameObject && col.isTrigger == false)
                 {
                     numberOfHits++;
                 }
@@ -501,11 +485,9 @@ public class MobMovement : MonoBehaviour
         sidesTuple.leftB = currentCol ? sidesTuple.leftM - new Vector2(0, currentCol.bounds.size.y / 2) : Vector3.zero;
         sidesTuple.rightB = currentCol ? sidesTuple.rightM - new Vector2(0, currentCol.bounds.size.y / 2) : Vector3.zero;
         sidesTuple.middleB = currentCol ? sidesTuple.middleM - new Vector2(0, currentCol.bounds.size.y / 2) : Vector3.zero;
-
-
         #endregion
 
-        if (dynamicSlopeObj)
+        if (dynamicSlopeObj && slopeCheckObj)
         {
             changeSlopeObj();
         }

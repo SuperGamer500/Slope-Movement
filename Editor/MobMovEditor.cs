@@ -1,9 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
+
 using UnityEngine;
 using UnityEditor;
-using PlasticGui.Help.Conditions;
-using Unity.VisualScripting;
+
 
 [CustomEditor(typeof(MobMovement))]
 public class MobMovEditor : Editor

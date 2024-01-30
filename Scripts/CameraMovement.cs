@@ -13,9 +13,8 @@ public class CameraMovement : MonoBehaviour
 
     [SerializeField] float xTime = 0.5f;
     [SerializeField] float yTime = 0.5f;
-    [SerializeField] float camZoomSize = 13;
 
-
+    [SerializeField] float camZoomSize = 10;
     // Start is called before the first frame update
     void Awake()
     {
@@ -33,8 +32,8 @@ public class CameraMovement : MonoBehaviour
             float smoothX = Mathf.SmoothDamp(transform.position.x, newPosition.x, ref floatRefX, xTime);
             float smoothY = Mathf.SmoothDamp(transform.position.y, newPosition.y, ref floatRefY, yTime);
             transform.position = new Vector3(smoothX, smoothY, -10);
+            transform.parent = followObject.transform.parent;
             GetComponent<Camera>().orthographicSize = camZoomSize;
-
         }
 
     }
