@@ -51,7 +51,7 @@ public class MobMovement : MonoBehaviour
     [SerializeField] List<otherDictValues> otherDictionary;
 
 
-    bool? onslope = false;
+    bool? wasOnSlope = false;
     private Rigidbody2D rigid;
 
 
@@ -292,28 +292,6 @@ public class MobMovement : MonoBehaviour
             //if not on ground and not fastfalling
             if (jumpVector.y < 0 && onGround() == false && currentGroundState != groundState.fastFall)
             {
-                // if ((currentGroundState == groundState.slideing || currentGroundState == groundState.grounded) && onGround() == false)
-                // {
-                //     Debug.Log("yess");
-                //     // Vector3 startingScale = slopeCheckObj.transform.localScale;
-                //     // slopeCheckObj.transform.localScale = startingScale * 0.75f;
-                //     if (SlopeStaticClass.slopeFollow(slopeCheckObj, groundLayers, true) == false)
-                //     {
-                //         //if sliding convert yspeed to jump vector
-                //         Debug.Log("cancelling");
-                //         slideGracePeriod = 0.1f;
-                //         jumpVector.y = moveVector.y;
-                //         speedX = (groundNormal.x * speedX);
-                //         moveVector = new Vector2(speedX, 0);
-                //         speedY = 0;
-                //     }
-                //     else
-                //     {
-                //         Debug.Log("oh come on");
-                //     }
-                //     //slopeCheckObj.transform.localScale = startingScale;
-                // }
-                //set state to falling
                 currentGroundState = groundState.falling;
             }
         }
@@ -353,28 +331,40 @@ public class MobMovement : MonoBehaviour
             jumpVector.y = Mathf.Clamp(jumpVector.y, int.MinValue, 0);
         }
         #endregion
+
+        if ((jumpVector.y < -0.1f || moveVector.y < -0.1f) && SlopeStaticClass.canGoNoAlloc(gameObject, transform.position + (Vector3)calculatedVel * Time.deltaTime, groundLayers, currentCol.bounds.size * 0.9f, canGoResults, canGoFilter) == true && SlopeStaticClass.slopeFollow(slopeCheckObj, groundLayers, true) == false && slideGracePeriod <= 0)
+        {
+
+            if (wasOnSlope == true)
+            {
+                //if sliding convert yspeed to jump vector
+                slideGracePeriod = 0.1f;
+                jumpVector.y = moveVector.y;
+                currentGroundState = groundState.falling;
+                moveVector.y = 0;
+                speedX = (moveVector.x / maxSpeed) * maxSpeed;
+                speedY = 0;
+            }
+        }
+
+        if (moveType == moveStyle.normal)
+        {
+            moveFunction();
+        }
     }
     public void jumpRequest()
     {
         //if object is jumping in the direction of the slope
         if (MathF.Sign(slopeAngle) == Mathf.Sign(moveVector.x) && Mathf.Abs(moveVector.x) != 0 && slopeAngle != 0)
         {
-
-
             //give extra jump height
             if (Mathf.Abs(slopeAngle) > maxSlopeAngle)
             {
                 jumpVector = (perpendicularNormal * 0.5f + new Vector2(0, 1) * 0.5f) * jumpPower;
-
-
-                //if the player is moveing towards the slope
-
                 //reset x
                 speedX = 0;
-
                 //lock movement for a little bit
                 lockMovement = 0.15f;
-
             }
             else
             {
@@ -383,11 +373,8 @@ public class MobMovement : MonoBehaviour
         }
         else
         {
-
             //jump based on the slope 
             jumpVector = (perpendicularNormal * 0.5f + new Vector2(0, 1) * 0.5f) * jumpPower;
-            Debug.Log(jumpVector);
-
 
             //if sliding
             if (Mathf.Abs(slopeAngle) > maxSlopeAngle)
@@ -568,14 +555,14 @@ public class MobMovement : MonoBehaviour
 
         bool middleBottomCheck = SlopeStaticClass.canGoNoAlloc(gameObject, sidesTuple.middleB, groundLayers, new Vector2(0, 0), canGoResults, canGoFilter);
 
-        // if ((leftMCheck == false) && moveType == moveStyle.normal)
-        // {
-        //     speedX = Mathf.Max(0, speedX);
-        // }
-        // else if ((rightMCheck == false) && moveType == moveStyle.normal)
-        // {
-        //     speedX = Mathf.Min(0, speedX);
-        // }
+        if ((leftMCheck == false) && moveType == moveStyle.normal)
+        {
+            speedX = Mathf.Max(0, speedX);
+        }
+        else if ((rightMCheck == false) && moveType == moveStyle.normal)
+        {
+            speedX = Mathf.Min(0, speedX);
+        }
 
         if (middleTopCheck == false)
         {
@@ -745,45 +732,19 @@ public class MobMovement : MonoBehaviour
         //if move style is normal
         if (moveType == moveStyle.normal)
         {
-            gravFunction();
             //grab the perpendicular, normal, and angle of slope
-            (perpendicularNormal, groundNormal, slopeAngle) = SlopeStaticClass.slopify(gameObject, groundLayers, rigid.velocity, slopeCheckObj, groundNormal, onGround(), ref onslope, slopeResults, slopeFilter, getPerp: true, colToUse: currentCol, jumpY: jumpVector.y, forceDownAmount: forceDownAmount);
+            (perpendicularNormal, groundNormal, slopeAngle) = SlopeStaticClass.slopify(gameObject, groundLayers, rigid.velocity, slopeCheckObj, groundNormal, onGround(), ref wasOnSlope, slopeResults, slopeFilter, getPerp: true, colToUse: currentCol, jumpY: jumpVector.y, forceDownAmount: forceDownAmount);
+            gravFunction();
         }
-
-        moveFunction();
-
+        else
+        {
+            moveFunction();
+        }
         //total up velocity
         calculatedVel = moveVector + jumpVector + combineOtherVector();
         if (!float.IsNaN(calculatedVel.x) || !float.IsNaN(calculatedVel.y))
         {
             rigid.velocity = calculatedVel;
-        }
-    }
-
-    private void LateUpdate()
-    {
-        if ((currentGroundState == groundState.slideing || currentGroundState == groundState.grounded) && onGround() == false && slideGracePeriod <= 0)
-        {
-
-            // Vector3 startingScale = slopeCheckObj.transform.localScale;
-            // slopeCheckObj.transform.localScale = startingScale * 0.75f;
-            if (SlopeStaticClass.slopeFollow(slopeCheckObj, groundLayers, true) == false)
-            {
-                //if sliding convert yspeed to jump vector
-                Debug.Log("cancelling");
-                slideGracePeriod = 0.1f;
-                jumpVector.y = moveVector.y;
-                Debug.Log($"{speedX} * {groundNormal.x} = {groundNormal.x * speedX}");
-                speedX = (groundNormal.x * speedX);
-                moveVector = new Vector2(speedX, 0);
-                speedY = 0;
-
-            }
-            else
-            {
-                Debug.Log("oh come on");
-            }
-            //slopeCheckObj.transform.localScale = startingScale;
         }
     }
 }

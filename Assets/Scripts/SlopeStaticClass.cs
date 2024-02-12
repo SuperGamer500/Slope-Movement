@@ -28,13 +28,13 @@ static public class SlopeStaticClass
     {
         if (mustBeAbove == true)
         {
-            Vector2 leftPos = new Vector2(slopCheckObj.transform.position.x - slopCheckObj.transform.lossyScale.x / 2, slopCheckObj.transform.position.y - slopCheckObj.transform.lossyScale.y / 2);
-            Vector2 rightPos = new Vector2(slopCheckObj.transform.position.x + slopCheckObj.transform.lossyScale.x / 2, slopCheckObj.transform.position.y - slopCheckObj.transform.lossyScale.y / 2);
+            Vector2 leftPos = new Vector2(slopCheckObj.transform.position.x - slopCheckObj.transform.lossyScale.x / 2, slopCheckObj.transform.position.y);
+            Vector2 rightPos = new Vector2(slopCheckObj.transform.position.x + slopCheckObj.transform.lossyScale.x / 2, slopCheckObj.transform.position.y);
 
             Ray2D downLeftRay = new Ray2D(leftPos, Vector2.down);
             Ray2D downRightRay = new Ray2D(rightPos, Vector2.down);
 
-            if (Physics2D.Raycast(downLeftRay.origin, downLeftRay.direction, 0.1f, groundLayers) || Physics2D.Raycast(downRightRay.origin, downRightRay.direction, 0.1f, groundLayers))
+            if (Physics2D.Raycast(downLeftRay.origin, downLeftRay.direction, 0.8f, groundLayers) || Physics2D.Raycast(downRightRay.origin, downRightRay.direction, 0.8f, groundLayers))
             {
                 return true;
             }
@@ -50,8 +50,9 @@ static public class SlopeStaticClass
 
     }
 
-    public static (Vector2, Vector2, float) slopify(GameObject obj, LayerMask groundLayers, Vector2 currentVelocity, GameObject slopeCheckObj, Vector2 currentNormal, bool grounded, ref bool? onSlope, Collider2D[] results, ContactFilter2D filter, bool getPerp = true, Collider2D colToUse = null, float jumpY = 0, float forceDownAmount = 2.5f)
+    public static (Vector2, Vector2, float) slopify(GameObject obj, LayerMask groundLayers, Vector2 currentVelocity, GameObject slopeCheckObj, Vector2 currentNormal, bool grounded, ref bool? wasOnSlope, Collider2D[] results, ContactFilter2D filter, bool getPerp = true, Collider2D colToUse = null, float jumpY = 0, float forceDownAmount = 2.5f)
     {
+        wasOnSlope = false;
         #region allVariables
         //get collider for side calculations
         colToUse = colToUse == null ? obj.GetComponent<Collider2D>() : colToUse;
@@ -279,22 +280,16 @@ static public class SlopeStaticClass
             float angle = Mathf.Atan2(castToUse.normal.y, castToUse.normal.x) * Mathf.Rad2Deg - 90;
 
             //if slope angle is near zero
-            if (Mathf.Abs(angle) < 0.1f)
-            {
-                //turn slope variable off
-                onSlope = false;
-            }
-            else
+            if (Mathf.Abs(angle) > 0.1f)
             {
                 //if the obj is not near the ground
                 if (jumpY < 0.1f && grounded == false)
                 {
                     // attempt to force the obj closer to the ground if the obj is not jumping
-                    Vector3 nextPos = obj.transform.position - (Vector3)(castToUse.normal * (forceDownAmount * (currentVelocity.magnitude / 5)));
+                    Vector3 nextPos = obj.transform.position - (Vector3)(castToUse.normal * Time.deltaTime * (forceDownAmount * (currentVelocity.magnitude / 5)));
 
                     if (canGoNoAlloc(obj, nextPos, groundLayers, colToUse.bounds.size * 0.9f, results, filter) && obj.transform.position != nextPos)
                     {
-                        onSlope = true;
                         obj.transform.position = nextPos;
                     }
                     else
@@ -302,11 +297,10 @@ static public class SlopeStaticClass
                         float speedAmount = forceDownAmount * (currentVelocity.magnitude / 5);
                         while (speedAmount > 0)
                         {
-                            nextPos = obj.transform.position - (Vector3)(castToUse.normal * speedAmount);
+                            nextPos = obj.transform.position - (Vector3)(castToUse.normal * Time.deltaTime * speedAmount);
 
                             if (canGoNoAlloc(obj, nextPos, groundLayers, colToUse.bounds.size, results, filter))
                             {
-                                onSlope = true;
                                 obj.transform.position = nextPos;
                                 break;
                             }
@@ -323,13 +317,19 @@ static public class SlopeStaticClass
         else
         {
             //turn slope off and get return values
-            onSlope = null;
             returnValue.perpendicular = new Vector2(1, 0);
             returnValue.normal = new Vector2(0, 1);
             returnValue.slopeAngle = 0;
         }
         #endregion
 
+        bool currDist = (Vector2.Distance(currentNormal, new Vector2(1, 0)) < 0.1f) == false;
+        bool normDist = Vector2.Distance(returnValue.perpendicular, new Vector2(1, 0)) < 0.1f;
+
+        if (currDist && normDist)
+        {
+            wasOnSlope = true;
+        }
         return returnValue;
     }
 }
