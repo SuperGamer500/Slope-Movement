@@ -1,8 +1,9 @@
-
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using System.Collections.Generic;
-
+using PlasticGui.Help.Conditions;
+using Unity.VisualScripting;
 
 [CustomEditor(typeof(MobMovement))]
 public class MobMovEditor : Editor
@@ -44,12 +45,9 @@ public class MobMovEditor : Editor
 
 
     SerializedProperty maxSlopeAngle;
-    SerializedProperty forceDownAmount;
     SerializedProperty moveType;
 
     SerializedProperty rotWithMove;
-
-    SerializedProperty otherDictionary;
     #endregion
 
 
@@ -60,7 +58,6 @@ public class MobMovEditor : Editor
     bool vectorButton = false;
 
     bool checkButton = false;
-    bool otherButton = false;
 
     private void OnEnable()
     {
@@ -78,7 +75,6 @@ public class MobMovEditor : Editor
         slopeCheckObj = serializedObject.FindProperty("slopeCheckObj");
         dynamicSlopeObj = serializedObject.FindProperty("dynamicSlopeObj");
         maxSlopeAngle = serializedObject.FindProperty("maxSlopeAngle");
-        forceDownAmount = serializedObject.FindProperty("forceDownAmount");
 
         groundLayers = serializedObject.FindProperty("groundLayers");
         jumpPower = serializedObject.FindProperty("jumpPower");
@@ -101,8 +97,6 @@ public class MobMovEditor : Editor
 
         rotWithMove = serializedObject.FindProperty("rotWithMove");
 
-        otherDictionary = serializedObject.FindProperty("otherDictionary");
-
 
     }
     void speedSection()
@@ -123,6 +117,12 @@ public class MobMovEditor : Editor
             EditorGUILayout.PropertyField(label: new GUIContent("Skid Speed"), property: skidSpeed);
             EditorGUILayout.PropertyField(label: new GUIContent("Speed Build Up"), property: velPower);
             EditorGUILayout.PropertyField(label: new GUIContent("Max Slope Angle"), property: maxSlopeAngle);
+
+            if (((MobMovement)target).gameObject.CompareTag("Enemy"))
+            {
+                EditorGUILayout.PropertyField(label: new GUIContent("Rotate with Movement"), property: rotWithMove);
+            }
+
         }
         EditorGUILayout.EndFoldoutHeaderGroup();
     }
@@ -174,15 +174,8 @@ public class MobMovEditor : Editor
             EditorGUILayout.PropertyField(label: new GUIContent("Slope Check Obj"), property: slopeCheckObj);
 
             EditorGUILayout.PropertyField(label: new GUIContent("Dynamic Slope Check"), property: dynamicSlopeObj);
-
-            EditorGUILayout.PropertyField(label: new GUIContent("Force Down Amount"), property: forceDownAmount);
         }
-        EditorGUILayout.EndFoldoutHeaderGroup();
-    }
 
-    void otherDictSection()
-    {
-        EditorGUILayout.PropertyField(label: new GUIContent("Other Dictionary"), property: otherDictionary);
     }
     public override void OnInspectorGUI()
     {
@@ -207,7 +200,8 @@ public class MobMovEditor : Editor
 
 
 
-        otherDictSection();
+
+
 
 
         serializedObject.ApplyModifiedProperties();
