@@ -1,9 +1,8 @@
-using System.Collections;
-using System.Collections.Generic;
+
 using UnityEngine;
 using UnityEditor;
-using PlasticGui.Help.Conditions;
-using Unity.VisualScripting;
+using System.Collections.Generic;
+
 
 [CustomEditor(typeof(MobMovement))]
 public class MobMovEditor : Editor
@@ -18,13 +17,14 @@ public class MobMovEditor : Editor
     SerializedProperty velPower;
 
     SerializedProperty currentGroundState;
-    SerializedProperty groundCheckObj;
+    SerializedProperty groundCheckTrans;
 
 
-    SerializedProperty slopeCheckObj;
+    SerializedProperty slopeCheckTrans;
     SerializedProperty dynamicSlopeObj;
 
     SerializedProperty groundLayers;
+
     SerializedProperty jumpPower;
     SerializedProperty gravity;
 
@@ -40,14 +40,21 @@ public class MobMovEditor : Editor
 
     SerializedProperty moveVector;
     SerializedProperty jumpVector;
-    SerializedProperty otherVector;
+
     SerializedProperty requestedDirection;
 
 
-    SerializedProperty maxSlopeAngle;
+
+    SerializedProperty forceDownAmount;
     SerializedProperty moveType;
 
     SerializedProperty rotWithMove;
+
+    SerializedProperty otherDictionary;
+    SerializedProperty mobileSupport;
+    SerializedProperty allParticles;
+
+
     #endregion
 
 
@@ -58,6 +65,8 @@ public class MobMovEditor : Editor
     bool vectorButton = false;
 
     bool checkButton = false;
+    bool particleButton = false;
+
 
     private void OnEnable()
     {
@@ -70,11 +79,12 @@ public class MobMovEditor : Editor
         velPower = serializedObject.FindProperty("velPower");
 
         currentGroundState = serializedObject.FindProperty("currentGroundState");
-        groundCheckObj = serializedObject.FindProperty("groundCheckObj");
+        groundCheckTrans = serializedObject.FindProperty("groundCheckTrans");
 
-        slopeCheckObj = serializedObject.FindProperty("slopeCheckObj");
+        slopeCheckTrans = serializedObject.FindProperty("slopeCheckTrans");
         dynamicSlopeObj = serializedObject.FindProperty("dynamicSlopeObj");
-        maxSlopeAngle = serializedObject.FindProperty("maxSlopeAngle");
+
+        forceDownAmount = serializedObject.FindProperty("forceDownAmount");
 
         groundLayers = serializedObject.FindProperty("groundLayers");
         jumpPower = serializedObject.FindProperty("jumpPower");
@@ -97,6 +107,17 @@ public class MobMovEditor : Editor
 
         rotWithMove = serializedObject.FindProperty("rotWithMove");
 
+        otherDictionary = serializedObject.FindProperty("otherDictionary");
+
+        mobileSupport = serializedObject.FindProperty("mobileSupport");
+
+        allParticles = serializedObject.FindProperty("allParticles");
+
+
+
+
+
+
 
     }
     void speedSection()
@@ -116,11 +137,15 @@ public class MobMovEditor : Editor
             EditorGUILayout.PropertyField(label: new GUIContent("Decceleration"), property: deccerleration);
             EditorGUILayout.PropertyField(label: new GUIContent("Skid Speed"), property: skidSpeed);
             EditorGUILayout.PropertyField(label: new GUIContent("Speed Build Up"), property: velPower);
-            EditorGUILayout.PropertyField(label: new GUIContent("Max Slope Angle"), property: maxSlopeAngle);
+
 
             if (((MobMovement)target).gameObject.CompareTag("Enemy"))
             {
                 EditorGUILayout.PropertyField(label: new GUIContent("Rotate with Movement"), property: rotWithMove);
+            }
+            else
+            {
+                EditorGUILayout.PropertyField(label: new GUIContent("Mobile Script"), property: mobileSupport);
             }
 
         }
@@ -168,15 +193,31 @@ public class MobMovEditor : Editor
         checkButton = EditorGUILayout.BeginFoldoutHeaderGroup(content: "checkObjs", foldout: checkButton);
         if (checkButton)
         {
-            EditorGUILayout.PropertyField(label: new GUIContent("Ground Check"), property: groundCheckObj);
+            EditorGUILayout.PropertyField(label: new GUIContent("Ground Check"), property: groundCheckTrans);
 
 
-            EditorGUILayout.PropertyField(label: new GUIContent("Slope Check Obj"), property: slopeCheckObj);
+            EditorGUILayout.PropertyField(label: new GUIContent("Slope Check Obj"), property: slopeCheckTrans);
 
             EditorGUILayout.PropertyField(label: new GUIContent("Dynamic Slope Check"), property: dynamicSlopeObj);
+
+            EditorGUILayout.PropertyField(label: new GUIContent("Force Down Amount"), property: forceDownAmount);
         }
+        EditorGUILayout.EndFoldoutHeaderGroup();
+    }
+
+    void otherDictSection()
+    {
+        EditorGUILayout.PropertyField(label: new GUIContent("Other Dictionary"), property: otherDictionary);
+    }
+
+    void particleSection()
+    {
+
+        EditorGUILayout.PropertyField(label: new GUIContent("All Particles"), property: allParticles);
+
 
     }
+
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
@@ -200,7 +241,9 @@ public class MobMovEditor : Editor
 
 
 
+        otherDictSection();
 
+        particleSection();
 
 
 
