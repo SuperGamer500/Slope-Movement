@@ -1,6 +1,6 @@
 # Slope-Movement
 
-Thank you for downloading this my assets. This series of assets will help make slope movment a lot easier.
+Thank you for downloading my assets. This series of assets will help make slope movment a lot easier.
 
 Important Information (Read this part of this file)
 1. Use the provided physics material 2D on every object that you want to use slopes. If you do not, there is a chance that objects will get caught on slopes. I would recommend setting the physics material as the default in Project Settings > Phyics2D > Default Material
